@@ -200,8 +200,8 @@ services:
           'ping',
           '-h',
           'localhost',
-          '-ucoze',
-          '-pcoze123',
+          '-u${MYSQL_USER}',
+          '-p${MYSQL_PASSWORD}',
         ]
       interval: 10s
       timeout: 5s
@@ -408,8 +408,8 @@ services:
       - seccomp:unconfined
     environment:
       <<: *shared-env
-      ETCD_ENDPOINTS: coze-etcd:2379
-      MINIO_ADDRESS: coze-minio:9000
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio:9000
       MINIO_BUCKET_NAME: ${MINIO_BUCKET:-milvus}
       MINIO_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin123}
@@ -453,7 +453,7 @@ services:
 
   nsqd:
     image: nsqio/nsq:v1.2.1
-    command: /nsqd --lookupd-tcp-address=coze-nsqlookupd:4160 --broadcast-address=coze-nsqd
+    command: /nsqd --lookupd-tcp-address=nsqlookupd:4160 --broadcast-address=nsqd
     restart: always
     ports:
       - '4150:4150'
@@ -473,7 +473,7 @@ services:
 
   nsqadmin:
     image: nsqio/nsq:v1.2.1
-    command: /nsqadmin --lookupd-http-address=coze-nsqlookupd:4161
+    command: /nsqadmin --lookupd-http-address=nsqlookupd:4161
     restart: always
     ports:
       - '4171:4171'
@@ -496,7 +496,7 @@ services:
       - ./volumes/minio/official_plugin_icon/:/official_plugin_icon
     entrypoint: >
       /bin/sh -c  "
-        (/usr/bin/mc alias set localminio http://coze-minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD} && \
+        (/usr/bin/mc alias set localminio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD} && \
         /usr/bin/mc mb --ignore-existing localminio/${STORAGE_BUCKET} && \
         /usr/bin/mc cp --recursive /default_icon/ localminio/${STORAGE_BUCKET}/default_icon/ && \
         /usr/bin/mc cp --recursive /official_plugin_icon/ localminio/${STORAGE_BUCKET}/official_plugin_icon/ && \
