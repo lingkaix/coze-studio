@@ -179,7 +179,6 @@ x-shared-env: &shared-env
 services:
   mysql:
     image: mysql:8.4.5
-    container_name: coze-mysql
     restart: always
     environment:
       <<: *shared-env
@@ -211,7 +210,6 @@ services:
 
   redis:
     image: bitnami/redis:8.0
-    container_name: coze-redis
     restart: always
     user: root
     privileged: true
@@ -249,7 +247,6 @@ services:
 
   elasticsearch:
     image: bitnami/elasticsearch:8.18.0
-    container_name: coze-elasticsearch
     restart: always
     user: root
     privileged: true
@@ -334,7 +331,6 @@ services:
 
   minio:
     image: minio/minio:RELEASE.2025-06-13T11-33-47Z-cpuv1
-    container_name: coze-minio
     user: root
     privileged: true
     restart: always
@@ -362,7 +358,6 @@ services:
 
   etcd:
     image: bitnami/etcd:3.5
-    container_name: coze-etcd
     user: root
     restart: always
     privileged: true
@@ -394,7 +389,6 @@ services:
     profiles: ['middleware']
 
   milvus:
-    container_name: coze-milvus
     image: milvusdb/milvus:v2.5.10
     user: root
     privileged: true
@@ -439,7 +433,6 @@ services:
 
   nsqlookupd:
     image: nsqio/nsq:v1.2.1
-    container_name: coze-nsqlookupd
     command: /nsqlookupd
     restart: always
     ports:
@@ -457,7 +450,6 @@ services:
 
   nsqd:
     image: nsqio/nsq:v1.2.1
-    container_name: coze-nsqd
     command: /nsqd --lookupd-tcp-address=coze-nsqlookupd:4160 --broadcast-address=coze-nsqd
     restart: always
     ports:
@@ -478,7 +470,6 @@ services:
 
   nsqadmin:
     image: nsqio/nsq:v1.2.1
-    container_name: coze-nsqadmin
     command: /nsqadmin --lookupd-http-address=coze-nsqlookupd:4161
     restart: always
     ports:
@@ -492,7 +483,6 @@ services:
 
   minio-setup:
     image: minio/mc:RELEASE.2025-05-21T01-59-54Z-cpuv1
-    container_name: coze-minio-setup
     environment:
       <<: *shared-env
     depends_on:
@@ -516,7 +506,6 @@ services:
 
   mysql-setup-schema:
     image: arigaio/atlas:0.35.0-community-alpine
-    container_name: coze-mysql-setup-schema
     environment:
       <<: *shared-env
     depends_on:
@@ -557,7 +546,6 @@ services:
 
   mysql-setup-init-sql:
     image: mysql:8.4.5
-    container_name: coze-mysql-setup-init-sql
     environment:
       <<: *shared-env
     depends_on:
