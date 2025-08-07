@@ -191,7 +191,6 @@ x-shared-env: &shared-env
 services:
   mysql:
     image: mysql:8.4.5
-    container_name: coze-mysql
     restart: always
     environment:
       <<: *shared-env
@@ -221,7 +220,6 @@ services:
 
   redis:
     image: bitnami/redis:8.0
-    container_name: coze-redis
     restart: always
     user: root
     privileged: true
@@ -249,7 +247,6 @@ services:
 
   elasticsearch:
     image: bitnami/elasticsearch:8.18.0
-    container_name: coze-elasticsearch
     restart: always
     user: root
     privileged: true
@@ -333,7 +330,6 @@ services:
 
   minio:
     image: minio/minio:RELEASE.2025-06-13T11-33-47Z-cpuv1
-    container_name: coze-minio
     user: root
     privileged: true
     restart: always
@@ -380,7 +376,6 @@ services:
 
   etcd:
     image: bitnami/etcd:3.5
-    container_name: coze-etcd
     user: root
     restart: always
     privileged: true
@@ -408,7 +403,6 @@ services:
       - coze-network
 
   milvus:
-    container_name: coze-milvus
     image: milvusdb/milvus:v2.5.10
     user: root
     privileged: true
@@ -449,7 +443,6 @@ services:
 
   nsqlookupd:
     image: nsqio/nsq:v1.2.1
-    container_name: coze-nsqlookupd
     command: /nsqlookupd
     restart: always
     networks:
@@ -463,7 +456,6 @@ services:
 
   nsqd:
     image: nsqio/nsq:v1.2.1
-    container_name: coze-nsqd
     command: /nsqd --lookupd-tcp-address=nsqlookupd:4160 --broadcast-address=nsqd
     restart: always
     depends_on:
@@ -480,7 +472,6 @@ services:
 
   nsqadmin:
     image: nsqio/nsq:v1.2.1
-    container_name: coze-nsqadmin
     command: /nsqadmin --lookupd-http-address=nsqlookupd:4161
     restart: always
     depends_on:
@@ -495,7 +486,6 @@ services:
     #   dockerfile: backend/Dockerfile
     image: opencoze/opencoze:latest
     restart: always
-    container_name: coze-server
     environment:
       <<: *shared-env
     networks:
@@ -522,7 +512,6 @@ services:
     #   context: ..
     #   dockerfile: frontend/Dockerfile
     image: opencoze/web:latest
-    container_name: coze-web
     restart: always
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro  # Main nginx config
