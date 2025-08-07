@@ -211,8 +211,8 @@ services:
           'ping',
           '-h',
           'localhost',
-          '-ucoze',
-          '-pcoze123',
+          '-u${MYSQL_USER}',
+          '-p${MYSQL_PASSWORD}',
         ]
       interval: 10s
       timeout: 5s
@@ -368,7 +368,7 @@ services:
       test:
         [
           'CMD-SHELL',
-          '/usr/bin/mc alias set health_check http://localhost:9000 minioadmin minioadmin123 && /usr/bin/mc ready health_check',
+          '/usr/bin/mc alias set health_check http://localhost:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD} && /usr/bin/mc ready health_check',
         ]
       interval: 30s
       timeout: 10s
