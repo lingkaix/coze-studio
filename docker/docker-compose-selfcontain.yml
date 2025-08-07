@@ -1,4 +1,7 @@
 x-shared-env: &shared-env
+  # Data Directory Prefix
+  DATA_PREFIX: ${DATA_PREFIX:-./data}
+  
   # Server
   LISTEN_ADDR: ${LISTEN_ADDR:-:8888}
   LOG_LEVEL: ${LOG_LEVEL:-debug}
@@ -195,7 +198,7 @@ services:
     environment:
       <<: *shared-env
     volumes:
-      - ./data/mysql:/var/lib/mysql
+      - ${DATA_PREFIX:-./data}/mysql:/var/lib/mysql
       - ./volumes/mysql/schema.sql:/docker-entrypoint-initdb.d/init.sql
     command:
       - --character-set-server=utf8mb4
@@ -226,7 +229,7 @@ services:
     environment:
       <<: *shared-env
     volumes:
-      - ./data/bitnami/redis:/bitnami/redis/data:rw,Z
+      - ${DATA_PREFIX:-./data}/bitnami/redis:/bitnami/redis/data:rw,Z
     command: >
       bash -c "
         /opt/bitnami/scripts/redis/setup.sh
@@ -255,7 +258,7 @@ services:
       # Add Java certificate trust configuration
       # - ES_JAVA_OPTS=-Djdk.tls.client.protocols=TLSv1.2 -Dhttps.protocols=TLSv1.2 -Djavax.net.ssl.trustAll=true -Xms4096m -Xmx4096m
     volumes:
-      - ./data/bitnami/elasticsearch:/bitnami/elasticsearch/data
+      - ${DATA_PREFIX:-./data}/bitnami/elasticsearch:/bitnami/elasticsearch/data
       - ./volumes/elasticsearch/elasticsearch.yml:/opt/bitnami/elasticsearch/config/my_elasticsearch.yml
       - ./volumes/elasticsearch/analysis-smartcn.zip:/opt/bitnami/elasticsearch/analysis-smartcn.zip:rw,Z
       - ./volumes/elasticsearch/setup_es.sh:/setup_es.sh
@@ -334,7 +337,7 @@ services:
     privileged: true
     restart: always
     volumes:
-      - ./data/minio:/data
+      - ${DATA_PREFIX:-./data}/minio:/data
       - ./volumes/minio/default_icon/:/default_icon
       - ./volumes/minio/official_plugin_icon/:/official_plugin_icon
     environment:
@@ -382,7 +385,7 @@ services:
     environment:
       <<: *shared-env
     volumes:
-      - ./data/bitnami/etcd:/bitnami/etcd:rw,Z
+      - ${DATA_PREFIX:-./data}/bitnami/etcd:/bitnami/etcd:rw,Z
       - ./volumes/etcd/etcd.conf.yml:/opt/bitnami/etcd/conf/etcd.conf.yml:ro,Z
     command: >
       bash -c "
@@ -426,7 +429,7 @@ services:
       MINIO_SECRET_ACCESS_KEY: minioadmin123
       MINIO_USE_SSL: false
     volumes:
-      - ./data/milvus:/var/lib/milvus:rw,Z
+      - ${DATA_PREFIX:-./data}/milvus:/var/lib/milvus:rw,Z
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:9091/healthz']
       interval: 5s
