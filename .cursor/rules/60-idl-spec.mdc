@@ -1,0 +1,12 @@
+---
+globs: idl/**
+description: IDL conventions and locations
+---
+### IDL
+
+- Primary entry: `idl/api.thrift` with domain-specific Thrift files under subfolders (e.g., `idl/app`, `idl/conversation`, `idl/workflow`, etc.).
+- Keep IDL definitions authoritative for backend APIs and cross-service contracts.
+- Update corresponding application/domain layers after IDL changes and regenerate as required by local tooling.
+
+Source: `Development Standards` wiki [7. Development Standards](https://github.com/coze-dev/coze-studio/wiki/7.-Development-Standards)
+

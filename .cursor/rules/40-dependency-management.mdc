@@ -1,0 +1,13 @@
+---
+alwaysApply: false
+description: Preferred tooling and dependency constraints
+---
+### Dependency Management
+
+- Build tools: use Rspack (web apps) and Rollup (Node packages). Avoid adding Webpack.
+- Testing: use Vitest only; do not introduce Jest, Mocha, etc.
+- UI: use `@coze/coze-design` for UI components.
+- Prefer existing libraries and avoid duplicates; check Rush and workspace manifests before adding new deps.
+
+Source: `Development Standards` wiki [7. Development Standards](https://github.com/coze-dev/coze-studio/wiki/7.-Development-Standards)
+

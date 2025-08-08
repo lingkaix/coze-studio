@@ -1,0 +1,29 @@
+---
+alwaysApply: true
+---
+### Coze Studio Architecture & Layout
+
+Coze Studio follows Domain-Driven Design (DDD). High-level layout:
+
+- backend: API, application, domain, cross-domain, infrastructure, toolkit, types
+- frontend: apps, config, infra, packages
+- common, docker, idl
+
+Key backend layers (DDD):
+
+- API layer (`backend/api`): Hertz HTTP endpoints, request/response, middleware
+- Application layer (`backend/application`): orchestrates domain and infra
+- Domain layer (`backend/domain`): core business entities, rules, workflows
+- Cross-domain ACL (`backend/crossdomain`): cross-domain interfaces & impls
+- Infra contract (`backend/infra/contract`): interfaces for DB, cache, MQ, config
+- Infra impl (`backend/infra/impl`): concrete implementations
+- Toolkit (`backend/pkg`): dependency-free utilities
+- Types (`backend/types`): shared types, error codes under `backend/types/errno`
+
+Frontend
+
+- Rspack-based app(s) with shared configs under `frontend/config`
+- Packages live under `frontend/packages`
+
+Useful entry docs: [backend/README.md](mdc:backend/README.md), [frontend/README.md](mdc:frontend/README.md), [docker/docker-compose.yml](mdc:docker/docker-compose.yml), [idl/api.thrift](mdc:idl/api.thrift)
+

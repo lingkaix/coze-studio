@@ -1,0 +1,16 @@
+---
+globs: frontend/**
+description: Frontend development standards, tools, and dependency preferences
+---
+### Frontend Standards
+
+- Build: Rspack for web apps; avoid introducing Webpack.
+- Packages: Use Rollup for Node packages when building libraries.
+- UI: Prefer `@coze/coze-design`; do not introduce alternative UI frameworks without justification.
+- Testing: Vitest; avoid Jest/Mocha.
+- Configs under `frontend/config` (eslint, stylelint, tailwind, ts-config, vitest-config).
+- Monorepo managed via Rush; respect existing scripts and constraints (`frontend/rushx-config.json`).
+- Disallowed libraries listed in `frontend/disallowed_3rd_libraries.json`.
+
+Source: `Development Standards` wiki [7. Development Standards](https://github.com/coze-dev/coze-studio/wiki/7.-Development-Standards)
+

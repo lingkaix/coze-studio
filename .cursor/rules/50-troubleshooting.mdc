@@ -1,0 +1,30 @@
+---
+alwaysApply: false
+description: Troubleshooting backend services and containers
+---
+### Containers to expect on startup
+
+- coze-server (backend)
+- coze-mysql, coze-redis, coze-milvus
+- coze-nsqlookupd, coze-nsqadmin, coze-nsqd
+- coze-elasticsearch, coze-minio, coze-etcd
+
+### Quick checks
+
+- List containers: `docker ps -a`
+- Service logs: `docker logs coze-server`
+- Filter by LogID from response header `x-log-id`:
+  - `docker logs coze-server | grep <logid>`
+
+### Inspect data (example: MySQL)
+
+- `docker exec -it coze-mysql mysql -u root -proot`
+- SQL: `SHOW DATABASES; USE opencoze; SHOW TABLES; SELECT * FROM user LIMIT 10;`
+
+### Error codes
+
+- Error definitions: `backend/types/errno`
+- When an API returns an error code, search it in the repo and check container logs with the associated LogID.
+
+Source: `Development Standards` wiki [7. Development Standards](https://github.com/coze-dev/coze-studio/wiki/7.-Development-Standards)
+

@@ -1,0 +1,30 @@
+---
+globs: **/*.test.*,**/*.spec.*
+description: Unit test standards and structure
+---
+### Unit Test Standards
+
+- Use Vitest for JS/TS; follow arrange → act → assert.
+- Prefer `describe` blocks with multiple `it` cases per feature.
+- Mock external effects (e.g., `shelljs.exec`, env readers) with `vi.mock`.
+- Keep tests close to the code or in designated test utilities modules.
+
+Example scaffold (Vitest):
+
+```ts
+import { describe, it, expect, vi } from 'vitest';
+
+vi.mock('shelljs', () => ({ exec: vi.fn() }));
+
+describe('feature', () => {
+  it('does X', () => {
+    // arrange
+    // act
+    // assert
+    expect(true).toBe(true);
+  });
+});
+```
+
+Source: `Development Standards` wiki [7. Development Standards](https://github.com/coze-dev/coze-studio/wiki/7.-Development-Standards)
+
