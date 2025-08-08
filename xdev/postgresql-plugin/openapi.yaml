@@ -1,0 +1,196 @@
+openapi: 3.0.1
+info:
+  title: PostgreSQL Database Plugin
+  description: A plugin for executing PostgreSQL queries and retrieving database schema information
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+paths:
+  /health:
+    get:
+      operationId: health_check
+      summary: Health check endpoint
+      description: Check if the plugin service is running
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  timestamp:
+                    type: string
+                    format: date-time
+                  service:
+                    type: string
+                    example: "postgresql-plugin"
+          description: Service is healthy
+  /query:
+    post:
+      operationId: execute_query
+      summary: Execute SQL query
+      description: Execute a SQL query on the specified PostgreSQL database
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - database_url
+                - query
+              properties:
+                database_url:
+                  type: string
+                  description: PostgreSQL connection string
+                  example: "postgresql://username:password@localhost:5432/database_name"
+                query:
+                  type: string
+                  description: SQL query to execute
+                  example: "SELECT * FROM users WHERE age > $1"
+                params:
+                  type: array
+                  description: Optional parameters for parameterized queries
+                  items:
+                    oneOf:
+                      - type: string
+                      - type: number
+                      - type: boolean
+                  example: [25]
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    description: Query results (for SELECT queries)
+                    items:
+                      type: object
+                  affected_rows:
+                    type: integer
+                    description: Number of affected rows (for INSERT/UPDATE/DELETE)
+                  execution_time_ms:
+                    type: number
+                    description: Query execution time in milliseconds
+          description: Query executed successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    description: Error message
+                  execution_time_ms:
+                    type: number
+          description: Query failed
+        "401":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Unauthorized"
+          description: Authentication failed
+      security:
+        - bearerAuth: []
+  /database-info:
+    post:
+      operationId: get_database_info
+      summary: Get database schema information
+      description: Retrieve table and column information from the database
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - database_url
+              properties:
+                database_url:
+                  type: string
+                  description: PostgreSQL connection string
+                  example: "postgresql://username:password@localhost:5432/database_name"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  tables:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        table_name:
+                          type: string
+                        columns:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              column_name:
+                                type: string
+                              data_type:
+                                type: string
+                              is_nullable:
+                                type: boolean
+                              column_default:
+                                type: string
+          description: Database information retrieved successfully
+        "400":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+          description: Failed to retrieve database information
+        "401":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Unauthorized"
+          description: Authentication failed
+      security:
+        - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: API key authentication using Bearer token

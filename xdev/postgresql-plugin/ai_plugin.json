@@ -1,0 +1,18 @@
+{
+  "schema_version": "v1",
+  "name_for_model": "postgresql_db",
+  "name_for_human": "PostgreSQL Database",
+  "description_for_model": "Execute SQL queries on PostgreSQL databases and retrieve database schema information. Supports SELECT, INSERT, UPDATE, DELETE operations with parameterized queries for security. Can introspect database structure to understand tables and columns.",
+  "description_for_human": "Connect to PostgreSQL databases to execute queries and explore database schemas. Perfect for data analysis, database administration, and building data-driven applications.",
+  "auth": {
+    "type": "service_http",
+    "key": "Authorization",
+    "sub_type": "token/api_key",
+    "payload": "{\"key\": \"Authorization\", \"service_token\": \"\", \"location\": \"Header\"}"
+  },
+  "logo_url": "plugin_default_icon.png",
+  "api": {
+    "type": "openapi",
+    "url": "/openapi.yaml"
+  }
+}

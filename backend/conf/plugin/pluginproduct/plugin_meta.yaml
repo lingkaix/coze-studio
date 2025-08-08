@@ -907,3 +907,32 @@
       deprecated: false
       method: get
       sub_url: /v5/place/around
+- plugin_id: 23
+  product_id: 7500000000000000001
+  deprecated: false
+  version: v1.0.0
+  openapi_doc_file: say_no.yaml
+  plugin_type: 1
+  manifest:
+    schema_version: v1
+    name_for_model: sayno
+    name_for_human: Say No
+    description_for_model: A plugin that provides creative reasons for saying no to any request. Use this when you need to politely decline something with humor or creativity.
+    description_for_human: A plugin that provides creative reasons for saying no to any request. Perfect for when you need to politely decline something with humor or creativity.
+    auth:
+      type: none
+    logo_url: plugin_default_icon.png
+    api:
+      type: openapi
+    common_params:
+      body: []
+      header:
+        - name: User-Agent
+          value: Coze/1.0
+      path: []
+      query: []
+  tools:
+    - tool_id: 230001
+      deprecated: false
+      method: get
+      sub_url: /no

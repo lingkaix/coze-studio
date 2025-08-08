@@ -1,0 +1,23 @@
+{
+  "name": "postgresql-plugin",
+  "version": "1.0.0",
+  "description": "A PostgreSQL database plugin for Coze Studio",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "bun run --hot src/index.ts",
+    "build": "bun build src/index.ts --outdir=dist --target=bun",
+    "start": "bun run dist/index.js",
+    "test": "bun run test.ts",
+    "register": "bun run src/register.ts"
+  },
+  "dependencies": {
+    "postgres": "^3.4.3",
+    "@types/node": "^20.11.0"
+  },
+  "devDependencies": {
+    "bun-types": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
