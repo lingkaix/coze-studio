@@ -1,8 +1,8 @@
-package redis
+package badger
 
 import (
 	"context"
-	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -11,21 +11,22 @@ import (
 
 func TestBadger_BasicSetGetExpire(t *testing.T) {
 	dir := t.TempDir()
-	os.Setenv("KV_URI", "badger://"+dir)
-	t.Cleanup(func() { os.Unsetenv("KV_URI") })
-	c := New()
+	c, err := New(dir)
+	require.NoError(t, err)
 	ctx := context.Background()
 	require.NoError(t, c.Set(ctx, "k1", "v1", time.Second).Err())
 	s, err := c.Get(ctx, "k1").Result()
 	require.NoError(t, err)
 	require.Equal(t, "v1", s)
+
+	// also exercise Expire
+	require.NoError(t, c.Expire(ctx, "k1", time.Second).Err())
 }
 
 func TestBadger_HashAndList(t *testing.T) {
 	dir := t.TempDir()
-	os.Setenv("KV_URI", "badger://"+dir)
-	t.Cleanup(func() { os.Unsetenv("KV_URI") })
-	c := New()
+	c, err := New(dir)
+	require.NoError(t, err)
 	ctx := context.Background()
 	require.NoError(t, c.HSet(ctx, "h1", "f1", "a", "f2", "b").Err())
 	m, err := c.HGetAll(ctx, "h1").Result()
@@ -39,10 +40,10 @@ func TestBadger_HashAndList(t *testing.T) {
 }
 
 func TestBadger_Incr(t *testing.T) {
+	_ = filepath.Base("") // keep filepath imported even if not used when editing
 	dir := t.TempDir()
-	os.Setenv("KV_URI", "badger://"+dir)
-	t.Cleanup(func() { os.Unsetenv("KV_URI") })
-	c := New()
+	c, err := New(dir)
+	require.NoError(t, err)
 	ctx := context.Background()
 	require.NoError(t, c.Incr(ctx, "cnt").Err())
 	require.NoError(t, c.IncrBy(ctx, "cnt", 2).Err())

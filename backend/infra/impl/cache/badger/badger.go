@@ -1,10 +1,9 @@
-package redis
+package badger
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	"net/url"
 	"path/filepath"
 	"strings"
 	"time"
@@ -13,27 +12,13 @@ import (
 	badger "github.com/dgraph-io/badger/v4"
 )
 
-// parseBadgerURI returns (scheme, path)
-func parseBadgerURI(uri string) (string, string) {
-	u, err := url.Parse(uri)
-	if err != nil {
-		return "", ""
-	}
-	if u.Scheme != "badger" {
-		return "", ""
-	}
-	p := u.Host + u.Path
-	if p == "" {
-		p = "."
-	}
-	return u.Scheme, p
-}
-
 type badgerImpl struct {
 	db *badger.DB
 }
 
-func newBadgerClient(path string) (cache.Cmdable, error) {
+// New creates a Badger-backed cache.Cmdable at the provided directory path.
+// Callers are responsible for passing a per-test temp dir in tests.
+func New(path string) (cache.Cmdable, error) {
 	if path == "" {
 		path = "./var/data/badger"
 	}

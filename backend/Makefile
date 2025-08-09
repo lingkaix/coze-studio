@@ -22,6 +22,6 @@ test-lite:
 	go test ./infra/impl/storage/fileblob -gcflags=all=-N -gcflags=all=-l
 	go test ./application/base/appinfra -run TestApplyLitePreset_ -gcflags=all=-N -gcflags=all=-l
 	go test ./infra/impl/es/duckdb -gcflags=all=-N -gcflags=all=-l
-	go test ./infra/impl/cache/redis -run TestBadger_ -gcflags=all=-N -gcflags=all=-l
+	go test ./infra/impl/cache/badger -gcflags=all=-N -gcflags=all=-l
 
 

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"path/filepath"
 	"testing"
 
 	contract "github.com/coze-dev/coze-studio/backend/infra/contract/es"
@@ -12,7 +13,8 @@ import (
 
 func TestDuckDBClient_BasicCRUDAndSearch(t *testing.T) {
 	t.Parallel()
-	c := New("./var/data/duckdb/test.duckdb.json")
+	dir := t.TempDir()
+	c := New(filepath.Join(dir, "test.duckdb.json"))
 	ctx := context.Background()
 
 	// Create index
@@ -52,7 +54,8 @@ func TestDuckDBClient_BasicCRUDAndSearch(t *testing.T) {
 
 func TestDuckDBClient_Persistence(t *testing.T) {
 	t.Parallel()
-	path := "./var/data/duckdb/persist.duckdb.json"
+	dir := t.TempDir()
+	path := filepath.Join(dir, "persist.duckdb.json")
 	// First instance writes data
 	c1 := New(path)
 	ctx := context.Background()
@@ -68,7 +71,8 @@ func TestDuckDBClient_Persistence(t *testing.T) {
 
 func TestDuckDBClient_QueriesAndSorting(t *testing.T) {
 	t.Parallel()
-	c := New("./var/data/duckdb/query.duckdb.json")
+	dir := t.TempDir()
+	c := New(filepath.Join(dir, "query.duckdb.json"))
 	ctx := context.Background()
 	require.NoError(t, c.CreateIndex(ctx, "docs", nil))
 
@@ -105,7 +109,8 @@ func TestDuckDBClient_QueriesAndSorting(t *testing.T) {
 
 func TestDuckDBClient_VectorSimilarity(t *testing.T) {
 	t.Parallel()
-	c := New("./var/data/duckdb/vector.duckdb.json")
+	dir := t.TempDir()
+	c := New(filepath.Join(dir, "vector.duckdb.json"))
 	ctx := context.Background()
 	require.NoError(t, c.CreateIndex(ctx, "docs", nil))
 

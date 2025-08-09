@@ -18,6 +18,7 @@ package redis
 
 import (
 	"context"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -26,6 +27,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"github.com/coze-dev/coze-studio/backend/infra/contract/cache"
+	badgerimpl "github.com/coze-dev/coze-studio/backend/infra/impl/cache/badger"
 )
 
 func New() cache.Cmdable {
@@ -40,20 +42,15 @@ func New() cache.Cmdable {
 			return cli
 		}
 	}
-	// NutsDB selection
-	// Badger selection
+	// Badger selection by URI
 	if uri := os.Getenv("CACHE_URI"); strings.HasPrefix(strings.ToLower(uri), "badger://") {
-		if _, path := parseBadgerURI(uri); path != "" {
-			if c, err := newBadgerClient(path); err == nil {
-				return c
-			}
+		if c, err := newBadgerFromURI(uri); err == nil {
+			return c
 		}
 	}
 	if uri := os.Getenv("KV_URI"); strings.HasPrefix(strings.ToLower(uri), "badger://") {
-		if _, path := parseBadgerURI(uri); path != "" {
-			if c, err := newBadgerClient(path); err == nil {
-				return c
-			}
+		if c, err := newBadgerFromURI(uri); err == nil {
+			return c
 		}
 	}
 
@@ -83,6 +80,19 @@ func NewWithAddrAndPassword(addr, password string) cache.Cmdable {
 	})
 
 	return &redisImpl{client: rdb}
+}
+
+// newBadgerFromURI parses badger:// URIs and returns a Badger client
+func newBadgerFromURI(uri string) (cache.Cmdable, error) {
+	u, err := url.Parse(uri)
+	if err != nil {
+		return nil, err
+	}
+	if strings.ToLower(u.Scheme) != "badger" {
+		return nil, err
+	}
+	path := u.Host + u.Path
+	return badgerimpl.New(path)
 }
 
 type redisImpl struct {
