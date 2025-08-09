@@ -19,7 +19,9 @@ package appinfra
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -37,7 +39,9 @@ import (
 	"github.com/coze-dev/coze-studio/backend/infra/impl/idgen"
 	"github.com/coze-dev/coze-studio/backend/infra/impl/imagex/veimagex"
 	"github.com/coze-dev/coze-studio/backend/infra/impl/mysql"
+	sqliteimpl "github.com/coze-dev/coze-studio/backend/infra/impl/sqlite"
 	"github.com/coze-dev/coze-studio/backend/infra/impl/storage"
+	fileimagex "github.com/coze-dev/coze-studio/backend/infra/impl/storage/fileimagex"
 	"github.com/coze-dev/coze-studio/backend/types/consts"
 )
 
@@ -58,7 +62,9 @@ func Init(ctx context.Context) (*AppDependencies, error) {
 	deps := &AppDependencies{}
 	var err error
 
-	deps.DB, err = mysql.New()
+	applyLitePreset()
+
+	deps.DB, err = openDBFromEnv()
 	if err != nil {
 		return nil, err
 	}
@@ -106,6 +112,10 @@ func Init(ctx context.Context) (*AppDependencies, error) {
 }
 
 func initImageX(ctx context.Context) (imagex.ImageX, error) {
+	// In lite mode with local file storage, provide a file-backed imagex stub
+	if os.Getenv(consts.StorageType) == "file" || os.Getenv("BLOB_URI") != "" {
+		return fileimagex.New(os.Getenv("BLOB_DIR"))
+	}
 
 	uploadComponentType := os.Getenv(consts.FileUploadComponentType)
 
@@ -181,5 +191,95 @@ func initCodeRunner() coderunner.Runner {
 		return sandbox.NewRunner(config)
 	default:
 		return direct.NewRunner()
+	}
+}
+
+// openDBFromEnv selects and opens the database based on DB_URI.
+// Supported schemes:
+// - sqlite://<path> → uses embedded SQLite provider
+// - (default) → MySQL via MYSQL_DSN using existing mysql.New()
+func openDBFromEnv() (*gorm.DB, error) {
+	raw := os.Getenv("DB_URI")
+	if raw == "" {
+		return mysql.New()
+	}
+
+	// Accept simple prefix match to avoid fragile URL parsing for relative paths
+	if strings.HasPrefix(strings.ToLower(raw), "sqlite://") {
+		pathPart := raw[len("sqlite://"):]
+		// Ensure directory exists for file-backed DB
+		if dir := filepath.Dir(pathPart); dir != "." && dir != "" {
+			if err := os.MkdirAll(dir, 0o755); err != nil {
+				return nil, fmt.Errorf("create sqlite data dir: %w", err)
+			}
+		}
+		dsn := fmt.Sprintf("file:%s?mode=rwc&cache=shared", pathPart)
+		return sqliteimpl.NewWithDSN(dsn)
+	}
+
+	// Fallback: support mysql:// DSN by translating into MYSQL_DSN for mysql.New(), or if MYSQL_DSN already set, just use it
+	if strings.HasPrefix(strings.ToLower(raw), "mysql://") {
+		// Convert URI to DSN expected by gorm mysql driver
+		if u, err := url.Parse(raw); err == nil {
+			// user:pass@tcp(host:port)/db?query
+			user := u.User.Username()
+			pass, _ := u.User.Password()
+			host := u.Host
+			dbname := strings.TrimPrefix(u.Path, "/")
+			q := u.RawQuery
+			dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s", user, pass, host, dbname)
+			if q != "" {
+				dsn = dsn + "?" + q
+			}
+			_ = os.Setenv("MYSQL_DSN", dsn)
+		}
+		return mysql.New()
+	}
+
+	// Unknown scheme → default to mysql
+	return mysql.New()
+}
+
+// applyLitePreset enables embedded infra defaults when LITE_MODE=1 or COZE_LITE=1.
+// It does not override explicitly provided envs.
+func applyLitePreset() {
+	lite := strings.TrimSpace(os.Getenv("LITE_MODE"))
+	if lite == "" {
+		lite = strings.TrimSpace(os.Getenv("COZE_LITE"))
+	}
+	if lite != "1" && strings.ToLower(lite) != "true" {
+		return
+	}
+
+	// DB default → sqlite file under ./var/data/sqlite/app.db
+	if os.Getenv("DB_URI") == "" {
+		_ = os.MkdirAll("./var/data/sqlite", 0o755)
+		_ = os.Setenv("DB_URI", "sqlite://./var/data/sqlite/app.db")
+	}
+
+	// MQ default → mempubsub
+	if os.Getenv(consts.MQTypeKey) == "" {
+		_ = os.Setenv(consts.MQTypeKey, "mem")
+	}
+
+	// Storage default → local file backend
+	if os.Getenv(consts.StorageType) == "" {
+		_ = os.Setenv(consts.StorageType, "file")
+	}
+	if os.Getenv("BLOB_DIR") == "" {
+		_ = os.MkdirAll("./var/data/blob", 0o755)
+		_ = os.Setenv("BLOB_DIR", "./var/data/blob")
+	}
+
+	// KV default → Badger path for embedded key-value store
+	if os.Getenv("KV_URI") == "" && os.Getenv("CACHE_URI") == "" {
+		_ = os.MkdirAll("./var/data/badger", 0o755)
+		_ = os.Setenv("KV_URI", "badger://./var/data/badger")
+	}
+
+	// Search default → duckdb file under ./var/data/duckdb/lite.duckdb
+	if os.Getenv("SEARCH_URI") == "" {
+		_ = os.MkdirAll("./var/data/duckdb", 0o755)
+		_ = os.Setenv("SEARCH_URI", "duckdb://./var/data/duckdb/lite.duckdb")
 	}
 }

@@ -1,11 +1,12 @@
 ---
-globs: backend/**
-description: Backend architecture, directory structure, and coding/testing standards
+alwaysApply: true
 ---
+# U MUST make tests following the contact/IDL/existing impl, before the implementation, and then do git commit the tests. Then make ur implementation passes the tests. U cannot go to the next step until u pass the tests and git commit the successful impl. u should use flag `-gcflags=all=-N -gcflags=all=-l` and only run the created test files.
+
 ### Backend Directory Structure
 
 - `backend/api`
-  - `handler/`: request processors
+  - `handler/`: request processorsdev: kv
   - `internal/`: internal tools
   - `middleware/`: middleware components
   - `model/`: API model definitions

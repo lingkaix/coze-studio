@@ -19,14 +19,44 @@ package redis
 import (
 	"context"
 	"os"
+	"strings"
 	"time"
 
+	miniredis "github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
 
 	"github.com/coze-dev/coze-studio/backend/infra/contract/cache"
 )
 
 func New() cache.Cmdable {
+	// Embedded selection via env
+	if uri := os.Getenv("CACHE_URI"); strings.HasPrefix(strings.ToLower(uri), "mem://") {
+		if cli, err := newEmbedded(); err == nil {
+			return cli
+		}
+	}
+	if uri := os.Getenv("KV_URI"); strings.HasPrefix(strings.ToLower(uri), "mem://") {
+		if cli, err := newEmbedded(); err == nil {
+			return cli
+		}
+	}
+	// NutsDB selection
+	// Badger selection
+	if uri := os.Getenv("CACHE_URI"); strings.HasPrefix(strings.ToLower(uri), "badger://") {
+		if _, path := parseBadgerURI(uri); path != "" {
+			if c, err := newBadgerClient(path); err == nil {
+				return c
+			}
+		}
+	}
+	if uri := os.Getenv("KV_URI"); strings.HasPrefix(strings.ToLower(uri), "badger://") {
+		if _, path := parseBadgerURI(uri); path != "" {
+			if c, err := newBadgerClient(path); err == nil {
+				return c
+			}
+		}
+	}
+
 	addr := os.Getenv("REDIS_ADDR")
 	password := os.Getenv("REDIS_PASSWORD")
 
@@ -57,6 +87,19 @@ func NewWithAddrAndPassword(addr, password string) cache.Cmdable {
 
 type redisImpl struct {
 	client *redis.Client
+}
+
+var embeddedOnceAddr string
+
+func newEmbedded() (cache.Cmdable, error) {
+	if embeddedOnceAddr == "" {
+		s, err := miniredis.Run()
+		if err != nil {
+			return nil, err
+		}
+		embeddedOnceAddr = s.Addr()
+	}
+	return NewWithAddrAndPassword(embeddedOnceAddr, ""), nil
 }
 
 // Del implements cache.Cmdable.

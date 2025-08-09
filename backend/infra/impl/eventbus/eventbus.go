@@ -22,6 +22,7 @@ import (
 
 	"github.com/coze-dev/coze-studio/backend/infra/contract/eventbus"
 	"github.com/coze-dev/coze-studio/backend/infra/impl/eventbus/kafka"
+	mem "github.com/coze-dev/coze-studio/backend/infra/impl/eventbus/mempubsub"
 	"github.com/coze-dev/coze-studio/backend/infra/impl/eventbus/nsq"
 	"github.com/coze-dev/coze-studio/backend/infra/impl/eventbus/rmq"
 	"github.com/coze-dev/coze-studio/backend/types/consts"
@@ -48,6 +49,8 @@ func DefaultSVC() ConsumerService {
 func (consumerServiceImpl) RegisterConsumer(nameServer, topic, group string, consumerHandler eventbus.ConsumerHandler, opts ...eventbus.ConsumerOpt) error {
 	tp := os.Getenv(consts.MQTypeKey)
 	switch tp {
+	case "mem":
+		return mem.RegisterConsumer(nameServer, topic, group, consumerHandler, opts...)
 	case "nsq":
 		return nsq.RegisterConsumer(nameServer, topic, group, consumerHandler, opts...)
 	case "kafka":
@@ -56,12 +59,14 @@ func (consumerServiceImpl) RegisterConsumer(nameServer, topic, group string, con
 		return rmq.RegisterConsumer(nameServer, topic, group, consumerHandler, opts...)
 	}
 
-	return fmt.Errorf("invalid mq type: %s , only support nsq, kafka, rmq", tp)
+	return fmt.Errorf("invalid mq type: %s , only support mem, nsq, kafka, rmq", tp)
 }
 
 func NewProducer(nameServer, topic, group string, retries int) (eventbus.Producer, error) {
 	tp := os.Getenv(consts.MQTypeKey)
 	switch tp {
+	case "mem":
+		return mem.NewProducer(nameServer, topic, group)
 	case "nsq":
 		return nsq.NewProducer(nameServer, topic, group)
 	case "kafka":
@@ -70,5 +75,5 @@ func NewProducer(nameServer, topic, group string, retries int) (eventbus.Produce
 		return rmq.NewProducer(nameServer, topic, group, retries)
 	}
 
-	return nil, fmt.Errorf("invalid mq type: %s , only support nsq, kafka, rmq", tp)
+	return nil, fmt.Errorf("invalid mq type: %s , only support mem, nsq, kafka, rmq", tp)
 }

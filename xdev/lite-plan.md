@@ -1,7 +1,7 @@
 ## Goal
 Make backend runnable as a single binary by making external services optional. Add embedded, drop-in compatible implementations without changing existing `infra/contract` interfaces or breaking tests:
 - **DB**: SQLite
-- **KV**: NutsDB
+- **KV**: Badger (dgraph-io/badger/v4)
 - **Search (text + vector)**: DuckDB
 - **Message Queue**: Go CDK mempubsub (in-memory)
 - **Object Storage**: Go CDK fileblob (local filesystem)
@@ -29,7 +29,7 @@ Make backend runnable as a single binary by making external services optional. A
 
 ## Mapping: Contract → Embedded Provider
 - **SQL DB** (`infra/contract/db`): `infra/impl/db/sqlite` using `modernc.org/sqlite` for CGO-free build. DSN: `file:./var/data/sqlite/app.db`.
-- **KV** (`infra/contract/kv`): `infra/impl/kv/nutsdb` using `github.com/nutsdb/nutsdb` with one DB per service, bucket-per-domain.
+- **KV** (`infra/contract/kv`): `infra/impl/kv/badger` using `github.com/dgraph-io/badger/v4` with one DB per service, logical buckets by key prefix.
 - **Search (text + vector)** (`infra/contract/search`): `infra/impl/search/duckdb` using DuckDB. Store documents + embeddings; provide BM25/text search and cosine similarity. File: `./var/data/duckdb/search.db`.
 - **MQ** (`infra/contract/mq`): `infra/impl/mq/gocdk` using `gocloud.dev/pubsub/mempubsub` with URIs `mem://topic`.
 - **Blob Storage** (`infra/contract/blob`): `infra/impl/blob/gocdk` using `gocloud.dev/blob/fileblob` with URIs like `file:///absolute/path` (default `./var/data/blob`).
@@ -37,7 +37,7 @@ Make backend runnable as a single binary by making external services optional. A
 ## Config & Wiring
 - Add new config keys (non-breaking; defaults preserve current behavior):
   - `db.uri`: e.g., `mysql://...` (default) or `sqlite://./var/data/sqlite/app.db`
-  - `kv.uri`: e.g., `redis://...` (default) or `nutsdb://./var/data/nutsdb`
+  - `kv.uri`: e.g., `redis://...` (default) or `badger://./var/data/badger`
   - `search.uri`: e.g., `es://...` (default) or `duckdb://./var/data/duckdb/search.db`
   - `mq.uri`: e.g., `nats://...` (default) or `mem://`
   - `blob.uri`: e.g., `s3://...` (default) or `file://./var/data/blob`
@@ -51,9 +51,9 @@ Make backend runnable as a single binary by making external services optional. A
   - **MySQL → SQLite**
     - External: `mysql://mysql:3306` (compose service `mysql`)
     - Lite: `sqlite://./var/data/sqlite/app.db`
-  - **Redis → NutsDB**
+  - **Redis → Badger**
     - External: `redis://redis:6379`
-    - Lite: `nutsdb://./var/data/nutsdb`
+    - Lite: `badger://./var/data/badger`
   - **Elasticsearch → DuckDB (text+vector)**
     - External: `es://elasticsearch:9200`
     - Lite: `duckdb://./var/data/duckdb/search.db`
@@ -69,7 +69,7 @@ Make backend runnable as a single binary by making external services optional. A
 
 - Suggested env keys (to document/create in `docker/.env.example`):
   - `DB_URI=mysql://mysql:3306` or `sqlite://./var/data/sqlite/app.db`
-  - `KV_URI=redis://redis:6379` or `nutsdb://./var/data/nutsdb`
+  - `KV_URI=redis://redis:6379` or `badger://./var/data/badger`
   - `SEARCH_URI=es://elasticsearch:9200` or `duckdb://./var/data/duckdb/search.db`
   - `MQ_URI=nsq://nsqd:4150?lookupd=http://nsqlookupd:4161` or `mem://`
   - `BLOB_URI=s3://minio/<bucket>` or `file://./var/data/blob`
@@ -78,7 +78,7 @@ Make backend runnable as a single binary by making external services optional. A
 ## Data & Migrations
 - SQLite: reuse existing migration engine; add SQLite migrations if dialect differences exist. Ensure WAL mode and pragmatic pragmas for durability.
 - DuckDB: create schema for text/vector tables. Provide a backfill command to index from source-of-truth (DB/ES) when present; otherwise index incrementally on writes.
-- NutsDB: create well-defined bucket naming per domain; clarify TTL behavior if needed.
+- Badger: logical bucket naming via key prefixes; TTL via Badger entry TTL; lists and hashes via composite keys.
 - Blob: create base directory on startup; validate permissions.
 
 ## SQL Parser and Dialects (SQLite, PostgreSQL)
@@ -127,7 +127,7 @@ Make backend runnable as a single binary by making external services optional. A
 ## Risks & Mitigations
 - DuckDB likely requires CGO; accept CGO for Linux builds or gate behind build tag `duckdb`. Provide fallback `sqlite`-based simple search if unavailable.
 - SQL dialect differences (MySQL → SQLite): add migration dialect shims and query adapters where queries are infra-owned.
-- Concurrency/locking: configure SQLite WAL, NutsDB file options; document safe limits.
+- Concurrency/locking: configure SQLite WAL, Badger options; document safe limits.
 - Search parity vs Elasticsearch: scope to features used by app; document any behavior differences.
 
 ## Milestones
@@ -137,7 +137,7 @@ Make backend runnable as a single binary by making external services optional. A
 2) Providers
    - MQ: Go CDK mempubsub
    - SQLite impl + migrations
-   - NutsDB impl
+   - Badger KV impl
    - DuckDB impl (text + vector)
    - Blob (file)
 3) Tests
