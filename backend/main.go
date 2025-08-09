@@ -21,6 +21,7 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -49,6 +50,14 @@ func main() {
 	ctx := context.Background()
 	// Please do not change the order of the function calls below
 	setCrashOutput()
+
+	// Add --lite flag to set LITE_MODE before env resolution
+	var lite bool
+	flag.BoolVar(&lite, "lite", false, "enable lite preset (embedded providers)")
+	flag.Parse()
+	if lite {
+		_ = os.Setenv("LITE_MODE", "1")
+	}
 
 	if err := loadEnv(); err != nil {
 		panic("loadEnv failed, err=" + err.Error())
