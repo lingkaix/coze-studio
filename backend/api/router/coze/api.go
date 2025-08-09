@@ -32,6 +32,8 @@ func Register(r *server.Hertz) {
 				_upload.POST("/apply_upload_action", append(_applyuploadaction0Mw(), coze.ApplyUploadAction)...)
 				_upload.POST("/*tos_uri", append(_commonuploadMw(), coze.CommonUpload)...)
 			}
+			// file-mode blob serving
+			_common.GET("/blob/*uri", coze.BlobDownload)
 		}
 		{
 			_conversation := _api.Group("/conversation", _conversationMw()...)

@@ -25,6 +25,7 @@ import (
 	"github.com/coze-dev/coze-studio/backend/infra/contract/imagex"
 	"github.com/coze-dev/coze-studio/backend/infra/contract/storage"
 	"github.com/coze-dev/coze-studio/backend/infra/impl/storage/fileblob"
+	fileimagex "github.com/coze-dev/coze-studio/backend/infra/impl/storage/fileimagex"
 	"github.com/coze-dev/coze-studio/backend/infra/impl/storage/minio"
 	"github.com/coze-dev/coze-studio/backend/infra/impl/storage/s3"
 	"github.com/coze-dev/coze-studio/backend/infra/impl/storage/tos"
@@ -78,7 +79,7 @@ func NewImagex(ctx context.Context) (imagex.ImageX, error) {
 	storageType := os.Getenv(consts.StorageType)
 	switch storageType {
 	case "file":
-		return nil, fmt.Errorf("imagex unsupported for local file storage; set FILE_UPLOAD_COMPONENT_TYPE=storage to use Storage-based upload")
+        return fileimagex.New(os.Getenv("BLOB_DIR"))
 	case "minio":
 		return minio.NewStorageImagex(
 			ctx,
