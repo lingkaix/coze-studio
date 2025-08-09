@@ -13,8 +13,9 @@ RUN go mod download
 # Copy the entire backend source code
 COPY backend/ ./
 
-# Build the Go application
-RUN go build -ldflags="-s -w" -o /app/opencoze main.go
+# Build the Go application with CGO enabled and optional sqlite tags
+ENV CGO_ENABLED=1
+RUN go build -tags "json1 sqlite_fts5" -ldflags="-s -w" -o /app/opencoze main.go
 
 
 # Stage 2: Final image
