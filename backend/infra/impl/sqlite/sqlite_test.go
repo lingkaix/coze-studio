@@ -75,45 +75,45 @@ func TestSQLiteProvider_NewAndCRUD(t *testing.T) {
 
 // TestSQLite_JSON1_Supported checks json_extract availability; skips if not supported.
 func TestSQLite_JSON1_Supported(t *testing.T) {
-    t.Parallel()
+	t.Parallel()
 
-    tmpDir := t.TempDir()
-    dbPath := filepath.Join(tmpDir, "json1.db")
-    dsn := fmt.Sprintf("file:%s?mode=rwc&cache=shared", dbPath)
+	tmpDir := t.TempDir()
+	dbPath := filepath.Join(tmpDir, "json1.db")
+	dsn := fmt.Sprintf("file:%s?mode=rwc&cache=shared", dbPath)
 
-    db, err := NewWithDSN(dsn)
-    if err != nil {
-        t.Fatalf("open sqlite: %v", err)
-    }
+	db, err := NewWithDSN(dsn)
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
 
-    var out int
-    if e := db.Raw("SELECT json_extract('{" + "\"a\":1,\"b\":{\"c\":2}" + "}', '$.b.c')").Scan(&out).Error; e != nil {
-        t.Skipf("json1 not available: %v", e)
-    }
-    assert.Equal(t, 2, out)
+	var out int
+	if e := db.Raw("SELECT json_extract('{" + "\"a\":1,\"b\":{\"c\":2}" + "}', '$.b.c')").Scan(&out).Error; e != nil {
+		t.Skipf("json1 not available: %v", e)
+	}
+	assert.Equal(t, 2, out)
 }
 
 // TestSQLite_FTS5_Supported checks FTS5 MATCH queries; skips if not supported.
 func TestSQLite_FTS5_Supported(t *testing.T) {
-    t.Parallel()
+	t.Parallel()
 
-    tmpDir := t.TempDir()
-    dbPath := filepath.Join(tmpDir, "fts5.db")
-    dsn := fmt.Sprintf("file:%s?mode=rwc&cache=shared", dbPath)
+	tmpDir := t.TempDir()
+	dbPath := filepath.Join(tmpDir, "fts5.db")
+	dsn := fmt.Sprintf("file:%s?mode=rwc&cache=shared", dbPath)
 
-    db, err := NewWithDSN(dsn)
-    if err != nil {
-        t.Fatalf("open sqlite: %v", err)
-    }
+	db, err := NewWithDSN(dsn)
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
 
-    // Create virtual table with fts5
-    if e := db.Exec("CREATE VIRTUAL TABLE docs USING fts5(content)").Error; e != nil {
-        t.Skipf("fts5 not available: %v", e)
-    }
-    assert.NoError(t, db.Exec("INSERT INTO docs(content) VALUES (?), (?)", "hello world", "another line").Error)
+	// Create virtual table with fts5
+	if e := db.Exec("CREATE VIRTUAL TABLE docs USING fts5(content)").Error; e != nil {
+		t.Skipf("fts5 not available: %v", e)
+	}
+	assert.NoError(t, db.Exec("INSERT INTO docs(content) VALUES (?), (?)", "hello world", "another line").Error)
 
-    var cnt int
-    err = db.Raw("SELECT COUNT(1) FROM docs WHERE docs MATCH 'hello'").Scan(&cnt).Error
-    assert.NoError(t, err)
-    assert.Equal(t, 1, cnt)
+	var cnt int
+	err = db.Raw("SELECT COUNT(1) FROM docs WHERE docs MATCH 'hello'").Scan(&cnt).Error
+	assert.NoError(t, err)
+	assert.Equal(t, 1, cnt)
 }
